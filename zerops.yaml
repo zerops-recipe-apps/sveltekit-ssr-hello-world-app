@@ -1,0 +1,93 @@
+zerops:
+  # prod: builds an optimized SSR artifact for deployment.
+  # SvelteKit adapter-node is NOT self-contained - the build/
+  # output requires node_modules at runtime (unlike Nitro-based
+  # frameworks). Both are deployed alongside the migration script.
+  - setup: prod
+    build:
+      base: nodejs@22
+      buildCommands:
+        - npm ci
+        - npm run build
+      # adapter-node output requires node_modules at runtime -
+      # deploy all three alongside the migration script.
+      deployFiles:
+        - build
+        - node_modules
+        - package.json
+        - migrate.js
+      # Cache node_modules between builds for faster installs.
+      cache:
+        - node_modules
+
+    # Readiness check: Zerops verifies each new container passes
+    # the health check before the project balancer routes traffic.
+    # Prevents requests reaching a container still initializing.
+    deploy:
+      readinessCheck:
+        httpGet:
+          port: 3000
+          path: /
+
+    run:
+      base: nodejs@22
+      # Run migration once per deploy, across all containers.
+      # initCommands run before start - atomically with the deploy,
+      # so schema and code are always in sync. zsc execOnce ensures
+      # exactly one container executes even with minContainers: 2+.
+      initCommands:
+        - zsc execOnce ${appVersionId} -- node migrate.js
+      ports:
+        - port: 3000
+          httpSupport: true
+      envVariables:
+        NODE_ENV: production
+        # DB_NAME matches the db service hostname - no substitution needed.
+        DB_NAME: db
+        # Zerops generates ${hostname_key} variables for each service.
+        # Variable names follow the {hostname}_{credential} pattern.
+        DB_HOST: ${db_hostname}
+        DB_PORT: ${db_port}
+        DB_USER: ${db_user}
+        DB_PASS: ${db_password}
+      # adapter-node entry point - node_modules and package.json
+      # must be present for module resolution to work.
+      start: node build
+
+  # dev: deploys full source code for interactive SSH development.
+  # The developer SSHs in and drives the framework dev server.
+  # ubuntu gives a richer toolset for interactive work.
+  - setup: dev
+    build:
+      base: nodejs@22
+      os: ubuntu
+      # npm install (not npm ci) - dev environment may lack a lock file
+      # or need flexible dep resolution for local experimentation.
+      buildCommands:
+        - npm install
+      # Deploy entire working directory: source, node_modules, config.
+      # The developer gets a complete, ready-to-run workspace.
+      deployFiles: ./
+      cache:
+        - node_modules
+
+    run:
+      base: nodejs@22
+      os: ubuntu
+      # Migration runs on dev too - database schema is ready when
+      # the developer SSHs in, without any manual setup step.
+      initCommands:
+        - zsc execOnce ${appVersionId} -- node migrate.js
+      ports:
+        - port: 3000
+          httpSupport: true
+      envVariables:
+        NODE_ENV: development
+        DB_NAME: db
+        DB_HOST: ${db_hostname}
+        DB_PORT: ${db_port}
+        DB_USER: ${db_user}
+        DB_PASS: ${db_password}
+      # zsc noop keeps the container alive without starting a server.
+      # The developer runs `npm run dev` via SSH when ready.
+      start: zsc noop --silent
