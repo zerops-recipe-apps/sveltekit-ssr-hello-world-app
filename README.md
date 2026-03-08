@@ -1,3 +1,26 @@
+# SvelteKit SSR Hello World Recipe App
+
+<!-- #ZEROPS_EXTRACT_START:intro# -->
+A server-rendered [SvelteKit](https://svelte.dev/docs/kit) application using adapter-node, connected to a PostgreSQL database. Demonstrates idempotent database migrations with `zsc execOnce` and SvelteKit's SSR rendering pipeline on [Zerops](https://zerops.io).
+<!-- #ZEROPS_EXTRACT_END:intro# -->
+
+Used within [SvelteKit SSR Hello World recipe](https://app.zerops.io/recipes/sveltekit-ssr-hello-world) for [Zerops](https://zerops.io) platform.
+
+⬇️ **Full recipe page and deploy with one-click**
+
+[![Deploy on Zerops](https://github.com/zeropsio/recipe-shared-assets/blob/main/deploy-button/light/deploy-button.svg)](https://app.zerops.io/recipes/sveltekit-ssr-hello-world?environment=small-production)
+
+![sveltekit cover](https://github.com/zeropsio/recipe-shared-assets/blob/main/covers/svg/cover-sveltekit.svg)
+
+## Integration Guide
+
+<!-- #ZEROPS_EXTRACT_START:integration-guide# -->
+
+### 1. Adding `zerops.yaml`
+
+The main application configuration file you place at the root of your repository. It tells Zerops how to build, deploy, and run your application.
+
+```yaml
 zerops:
   # prod: builds an optimized SSR artifact for deployment.
   # SvelteKit adapter-node is NOT self-contained - the build/
@@ -91,3 +114,6 @@ zerops:
       # zsc noop keeps the container alive without starting a server.
       # The developer runs `npm run dev` via SSH when ready.
       start: zsc noop --silent
+```
+
+<!-- #ZEROPS_EXTRACT_END:integration-guide# -->
