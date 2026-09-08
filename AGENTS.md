@@ -6,7 +6,7 @@ SvelteKit 2 SSR starter using `@sveltejs/adapter-node`, PostgreSQL sibling, idem
 
 - HTTP port: `3000`
 - Siblings: `db` (PostgreSQL) — env: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_NAME`
-- Runtime base: `nodejs@22`
+- Runtime base: `nodejs@24`
 
 ## Zerops dev
 
@@ -19,6 +19,7 @@ SvelteKit 2 SSR starter using `@sveltejs/adapter-node`, PostgreSQL sibling, idem
 
 ## Notes
 
+- Prod build uses `npm ci --include=dev` — Zerops sets `NODE_ENV=production`, which omits devDependencies (Vite, SvelteKit) unless explicitly included.
 - `adapter-node` is NOT self-contained — `node_modules/` and `package.json` are deployed alongside `build/` so module resolution works at runtime.
 - `migrate.js` is run by `zsc execOnce ${appVersionId}` — exactly one container executes it per deploy, even with `minContainers: 2+`.
 - Favicon lives in `static/favicon.ico`.

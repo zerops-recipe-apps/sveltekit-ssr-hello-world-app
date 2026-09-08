@@ -5,9 +5,9 @@ zerops:
   # frameworks). Both are deployed alongside the migration script.
   - setup: prod
     build:
-      base: nodejs@22
+      base: nodejs@24
       buildCommands:
-        - npm ci
+        - npm ci --include=dev
         - npm run build
       # adapter-node output requires node_modules at runtime -
       # deploy all three alongside the migration script.
@@ -30,7 +30,7 @@ zerops:
           path: /
 
     run:
-      base: nodejs@22
+      base: nodejs@24
       # Run migration once per deploy, across all containers.
       # initCommands run before start - atomically with the deploy,
       # so schema and code are always in sync. zsc execOnce ensures
@@ -59,7 +59,7 @@ zerops:
   # ubuntu gives a richer toolset for interactive work.
   - setup: dev
     build:
-      base: nodejs@22
+      base: nodejs@24
       os: ubuntu
       # npm install (not npm ci) - dev environment may lack a lock file
       # or need flexible dep resolution for local experimentation.
@@ -72,7 +72,7 @@ zerops:
         - node_modules
 
     run:
-      base: nodejs@22
+      base: nodejs@24
       os: ubuntu
       # Migration runs on dev too - database schema is ready when
       # the developer SSHs in, without any manual setup step.
